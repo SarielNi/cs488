@@ -1,0 +1,9 @@
+Compilation:
+	My code didn't introduce any changes on the default premake/make file.
+	Follow the instructions under the A0 will compile the program and produce an executable called A0.
+	Next, just run the A0 and the window will pop out.
+
+Manual:
+	I assume that the full rotation takes 2PI degree to rotate.
+	Add a limit checking statement for the scale event handling function. Check both the upper bound and lower bound.
+	Print out the message if user use the shortcut such as 'r'.
