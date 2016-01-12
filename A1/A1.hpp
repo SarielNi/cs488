@@ -44,7 +44,7 @@ private:
 	GLuint m_grid_vbo; // Vertex Buffer Object
 
 	GLuint m_bar_vao;	//bar array object
-	GLuint m_grid_vbo;	//bar buffer object
+	GLuint m_bar_vbo;	//bar buffer object
 
 	// Matrices controlling the camera and projection.
 	glm::mat4 proj;
@@ -53,6 +53,7 @@ private:
 	float colour[3];
 	int current_col;
 
-	int leftShiftPressed;
-	int rightShiftPressed;
+	int mouseClicking;
+	int leftShiftPressed;	//flag variable of leftShift
+	int rightShiftPressed;	//flag variable of rightShift
 };

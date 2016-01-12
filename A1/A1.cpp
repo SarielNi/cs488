@@ -14,7 +14,7 @@ using namespace std;
 static const size_t DIM = 16;
 static const size_t maxNumOfBars = 20;
 
-static const GLfloat g_vertex_buffer_data[] = {
+static const GLfloat m_bar_vao[] = {
 	-1.0f,-1.0f,-1.0f, // triangle 1 : begin
 	-1.0f,-1.0f, 1.0f,
 	-1.0f, 1.0f, 1.0f, // triangle 1 : end
@@ -64,6 +64,7 @@ A1::A1()
 
 	leftShiftPressed = 0;
 	rightShiftPressed = 0;
+	mouseClicking = 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -254,7 +255,7 @@ void A1::draw()
 		// Highlight the active square.
 		glBindVertexArray( m_bar_vao );
 		glUniform3f( col_uni, 1, 1, 1 );
-		glDrawArrays( GL_TRIANGLES, 0, (3+DIM)*4);
+		glDrawArrays( GL_TRIANGLES	, 0, (3+DIM)*4);
 	m_shader.disable();
 
 	// Restore defaults
@@ -361,7 +362,7 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 	if( action == GLFW_PRESS ) {
 		// Respond to some key events.
 		eventHandled = true;
-		int shiftPressed = leftShiftPressed || rightShiftPressed;
+		int shiftPressed = leftShiftPressed || rightShiftPressed;	//indicate that if shift keys are holded
 		switch ( key ){
 			case GLFW_KEY_Q:
 				//quit the application
@@ -430,12 +431,15 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 		}
 	}
 	if ( action == GLFW_RELEASE ){
+		//Response to the shift key release event
 		if ( key == GLFW_KEY_LEFT_SHIFT ){
+			//set the left shift key flag
 			cout << "Left Shift Released" << endl;
 			leftShiftPressed = 0;
 			eventHandled = true;
 		}
 		if ( key == GLFW_KEY_RIGHT_SHIFT ){
+			//set the right shift key flag
 			cout << "Right Shift Released" << endl;
 			rightShiftPressed = 0;
 			eventHandled = true;
