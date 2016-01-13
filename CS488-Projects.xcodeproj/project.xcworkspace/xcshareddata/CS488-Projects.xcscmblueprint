@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "54E63E54DF9F87CFBCD9F7739D7AD348C38EAE69",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "54E63E54DF9F87CFBCD9F7739D7AD348C38EAE69" : 0,
+    "3EFE80D07C6D511B48A00639ED3230E5B1A988B7" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "D0DCA18D-009B-4FE1-9D80-E0A1A9BA2C67",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "54E63E54DF9F87CFBCD9F7739D7AD348C38EAE69" : "cs488\/",
+    "3EFE80D07C6D511B48A00639ED3230E5B1A988B7" : "cs488-fall-2015"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "CS488-Projects",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "CS488-Projects.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/bitbucket.org\/isohedral\/cs488-fall-2015.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "3EFE80D07C6D511B48A00639ED3230E5B1A988B7"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/SarielNi\/cs488.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "54E63E54DF9F87CFBCD9F7739D7AD348C38EAE69"
+    }
+  ]
+}

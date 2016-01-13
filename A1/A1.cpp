@@ -14,7 +14,7 @@ using namespace std;
 static const size_t DIM = 16;
 static const size_t maxNumOfBars = 20;
 
-static const GLfloat m_bar_vao[] = {
+static const GLfloat g_vertex_buffer_data[] = {
 	-1.0f,-1.0f,-1.0f, // triangle 1 : begin
 	-1.0f,-1.0f, 1.0f,
 	-1.0f, 1.0f, 1.0f, // triangle 1 : end
@@ -62,6 +62,7 @@ A1::A1()
 	colour[1] = 0.0f;
 	colour[2] = 0.0f;
 
+	currentXpos = 0;
 	leftShiftPressed = 0;
 	rightShiftPressed = 0;
 	mouseClicking = 0;
@@ -157,6 +158,17 @@ void A1::initGrid()
 	// OpenGL has the buffer now, there's no need for us to keep a copy.
 	delete [] verts;
 
+	glGenVertexArrays( 1, &m_bar_vao );
+	glBindVertexArray( m_bar_vao );
+
+	glGenBuffers( 1, &m_bar_vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, m_bar_vbo );
+	glBufferData( GL_ARRAY_BUFFER, 108*sizeof(float),
+		g_vertex_buffer_data, GL_STATIC_DRAW );
+
+	glEnableVertexAttribArray( posAttrib );
+	glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
+
 	CHECK_GL_ERRORS;
 }
 
@@ -167,6 +179,38 @@ void A1::initGrid()
 void A1::appLogic()
 {
 	// Place per frame, application logic here ...
+
+	CHECK_GL_ERRORS;
+}
+
+void A1::draw_cube(){
+	GLfloat *new_triangle = new GLfloat[108]; 
+	for ( int idx=0; idx< 108; idx++){
+		new_triangle[idx] = g_vertex_buffer_data[idx];
+	}
+	for (int idx=0; idx < 108; idx++ ){
+		new_triangle[idx] += 2.0f;
+	}	
+	GLuint tmp_vao;
+	GLuint tmp_vbo;
+
+	glGenVertexArrays( 1, &tmp_vao);
+	glBindVertexArray( tmp_vao );
+
+	glGenBuffers( 1, &tmp_vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, tmp_vbo );
+	glBufferData( GL_ARRAY_BUFFER, 108*sizeof(float),
+		new_triangle, GL_STATIC_DRAW);
+
+	GLint posAttrib = m_shader.getAttribLocation( "position" );
+	glEnableVertexAttribArray( posAttrib );
+	glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
+
+	glBindVertexArray( tmp_vao );
+	glUniform3f( col_uni, 0, 0, 0 );
+	glDrawArrays( GL_TRIANGLES	, 0, 12*3 );
+	
+	delete [] new_triangle;
 }
 
 //----------------------------------------------------------------------------------------
@@ -210,15 +254,15 @@ void A1::guiLogic()
 		}
 		ImGui::PopID();
 
-/*
-		// For convenience, you can uncomment this to show ImGui's massive
-		// demonstration window right in your application.  Very handy for
-		// browsing around to get the widget you want.  Then look in 
-		// shared/imgui/imgui_demo.cpp to see how it's done.
-		if( ImGui::Button( "Test Window" ) ) {
-			showTestWindow = !showTestWindow;
-		}
-*/
+
+		// // For convenience, you can uncomment this to show ImGui's massive
+		// // demonstration window right in your application.  Very handy for
+		// // browsing around to get the widget you want.  Then look in 
+		// // shared/imgui/imgui_demo.cpp to see how it's done.
+		// if( ImGui::Button( "Test Window" ) ) {
+		// 	showTestWindow = !showTestWindow;
+		// }
+
 
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
@@ -255,7 +299,9 @@ void A1::draw()
 		// Highlight the active square.
 		glBindVertexArray( m_bar_vao );
 		glUniform3f( col_uni, 1, 1, 1 );
-		glDrawArrays( GL_TRIANGLES	, 0, (3+DIM)*4);
+		glDrawArrays( GL_TRIANGLES	, 0, 12*3 );
+
+		draw_cube();
 	m_shader.disable();
 
 	// Restore defaults
@@ -307,6 +353,11 @@ bool A1::mouseMoveEvent(double xPos, double yPos)
 		// Probably need some instance variables to track the current
 		// rotation amount, and maybe the previous X position (so 
 		// that you can rotate relative to the *change* in X.
+		if ( mouseClicking ){
+
+
+			eventHandled = true;
+		}
 	}
 
 	return eventHandled;
@@ -322,8 +373,16 @@ bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
 		// The user clicked in the window.  If it's the left
 		// mouse button, initiate a rotation.
+		if ( button == GLFW_MOUSE_BUTTON_LEFT ){
+			if ( actions == GLFW_PRESS ){
+				mouseClicking = 1;
+				eventHandled = true;
+			}else if ( actions == GLFW_RELEASE ){
+				mouseClicking = 0;
+				eventHandled = true;
+			}
+		}
 	}
-
 	return eventHandled;
 }
 

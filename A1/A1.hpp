@@ -31,6 +31,7 @@ private:
 	void initGrid();
 
 	void resetGrid();
+	void draw_cube();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
@@ -50,10 +51,12 @@ private:
 	glm::mat4 proj;
 	glm::mat4 view;
 
+	float currentXpos;
+
 	float colour[3];
 	int current_col;
 
-	int mouseClicking;
-	int leftShiftPressed;	//flag variable of leftShift
-	int rightShiftPressed;	//flag variable of rightShift
+	volatile int mouseClicking;
+	volatile int leftShiftPressed;	//flag variable of leftShift
+	volatile int rightShiftPressed;	//flag variable of rightShift
 };
