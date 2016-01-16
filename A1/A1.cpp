@@ -13,65 +13,138 @@ using namespace std;
 
 static const size_t DIM = 16;
 static const size_t maxNumOfBars = 20;
+static const float MAXDISTANCE = float(DIM)*2.0*M_SQRT1_2;
 
-static const GLfloat g_vertex_buffer_data[] = {
-	-1.0f,-1.0f,-1.0f, // triangle 1 : begin
-	-1.0f,-1.0f, 1.0f,
-	-1.0f, 1.0f, 1.0f, // triangle 1 : end
-	1.0f, 1.0f,-1.0f, // triangle 2 : begin
-	-1.0f,-1.0f,-1.0f,
-	-1.0f, 1.0f,-1.0f, // triangle 2 : end
-	1.0f,-1.0f, 1.0f,
-	-1.0f,-1.0f,-1.0f,
-	1.0f,-1.0f,-1.0f,
-	1.0f, 1.0f,-1.0f,
-	1.0f,-1.0f,-1.0f,
-	-1.0f,-1.0f,-1.0f,
-	-1.0f,-1.0f,-1.0f,
-	-1.0f, 1.0f, 1.0f,
-	-1.0f, 1.0f,-1.0f,
-	1.0f,-1.0f, 1.0f,
-	-1.0f,-1.0f, 1.0f,
-	-1.0f,-1.0f,-1.0f,
-	-1.0f, 1.0f, 1.0f,
-	-1.0f,-1.0f, 1.0f,
-	1.0f,-1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f,
-	1.0f,-1.0f,-1.0f,
-	1.0f, 1.0f,-1.0f,
-	1.0f,-1.0f,-1.0f,
-	1.0f, 1.0f, 1.0f,
-	1.0f,-1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f,-1.0f,
-	-1.0f, 1.0f,-1.0f,
-	1.0f, 1.0f, 1.0f,
-	-1.0f, 1.0f,-1.0f,
-	-1.0f, 1.0f, 1.0f,
-	1.0f, 1.0f, 1.0f,
-	-1.0f, 1.0f, 1.0f,
-	1.0f,-1.0f, 1.0f
-};
+oneCellData::~oneCellData(){
+	for ( int i = 0; i < 8; i++){
+		delete [] vertex_data_buffer[i];
+	}
+	delete [] vertex_data_buffer;
+}
+
+oneCellData::oneCellData(int x, int z):x(x), z(z){
+	vertex_data_buffer = new GLfloat*[8];
+	for ( int i = 0; i < 8; i++ ){
+		vertex_data_buffer[i] = new GLfloat[3];
+	}
+	this->resetData();
+}
+
+GLfloat** oneCellData::get_vertex_data(){
+	return this->vertex_data_buffer;
+}
+
+void oneCellData::change_color( int newColorID ){
+	colorID = newColorID;
+}
+
+void oneCellData::change_vertex_height_data(){
+	GLfloat ** v = vertex_data_buffer;
+	v[0][1] = height;
+	v[1][1] = height;
+	v[2][1] = height;
+	v[3][1] = height;
+}
+
+void oneCellData::change_height( int n ){
+	if ( n > 0 ){
+		if ( height == maxNumOfBars ){
+			cout << "Reach the maximum number of bars" << endl;
+		}else{
+			height++;
+			change_vertex_height_data();
+		}
+	}else {
+		if ( height == 0 ){
+			cout << "Can not shrink anymore" << endl;
+		}else{
+			height--;
+			change_vertex_height_data();
+		}
+	}
+}
+
+GLint oneCellData::get_current_height(){
+	return height;
+}
+
+GLint oneCellData::get_current_color(){
+	return colorID;
+}
+
+void oneCellData::copy_old_data( oneCellData * old ){
+	GLfloat ** old_data = old->get_vertex_data();
+	GLfloat ** v = vertex_data_buffer;
+	height = old->get_current_height();
+	colorID = old->get_current_color();
+
+	change_vertex_height_data();
+}
+
+void oneCellData::resetData(){
+	GLfloat ** v = vertex_data_buffer;
+	v[0][0] = x; v[0][1] = 0; v[0][2] = z;
+	v[1][0] = x; v[1][1] = 0; v[1][2] = z+1;
+	v[2][0] = x + 1; v[2][1] = 0; v[2][2] = z+1;
+	v[3][0] = x+1; v[3][1] = 0; v[3][2] = z;
+	v[4][0] = x; v[4][1] = 0; v[4][2] = z;
+	v[5][0] = x; v[5][1] = 0; v[5][2] = z+1;
+	v[6][0] = x+1; v[6][1] = 0; v[6][2] = z+1;
+	v[7][0] = x+1; v[7][1] = 0; v[7][2] = z;
+
+	height = 0;
+	colorID = 0;
+}
 
 //----------------------------------------------------------------------------------------
 // Constructor
 A1::A1()
 	: current_col( 0 )
 {
-	colour[0] = 0.0f;
-	colour[1] = 0.0f;
-	colour[2] = 0.0f;
+	// colour[0] = 0.0f;
+	// colour[1] = 0.0f;
+	// colour[2] = 0.0f;
+	colour = new float*[8];
+	for ( int i = 0; i < 8; i++){
+		colour[i] = new float[3];
+		for ( int j = 0; j < 3; j++){
+			colour[i][j] = 0.0f;
+		}
+	}
 
-	currentXpos = 0;
+	for ( int i=0; i < DIM; i++){
+		for ( int j=0; j< DIM; j++){
+			allCellData[i][j] = new oneCellData(i, j);
+		}
+	}
+	current_x_position = DIM / 2;
+	current_z_position = DIM / 2;
+	active_cell_data_ptr = allCellData[current_x_position][current_z_position];
+
+	current_idx_of_cube = 0;
+
 	leftShiftPressed = 0;
 	rightShiftPressed = 0;
 	mouseClicking = 0;
+	previous_xPos = 0.0;
+	camera_xPos = 0.0f;
+	quadrant = 1;
 }
 
 //----------------------------------------------------------------------------------------
 // Destructor
 A1::~A1()
-{}
+{
+	for ( int i = 0; i < DIM; i++){
+		for ( int j = 0; j < DIM; j++){
+			delete allCellData[i][j];
+			cout << i*DIM + j << endl;
+		}
+	}
+	for ( int i = 0; i < 8; i++){
+		delete [] colour[i];
+	}
+}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -158,17 +231,6 @@ void A1::initGrid()
 	// OpenGL has the buffer now, there's no need for us to keep a copy.
 	delete [] verts;
 
-	glGenVertexArrays( 1, &m_bar_vao );
-	glBindVertexArray( m_bar_vao );
-
-	glGenBuffers( 1, &m_bar_vbo );
-	glBindBuffer( GL_ARRAY_BUFFER, m_bar_vbo );
-	glBufferData( GL_ARRAY_BUFFER, 108*sizeof(float),
-		g_vertex_buffer_data, GL_STATIC_DRAW );
-
-	glEnableVertexAttribArray( posAttrib );
-	glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
-
 	CHECK_GL_ERRORS;
 }
 
@@ -183,14 +245,21 @@ void A1::appLogic()
 	CHECK_GL_ERRORS;
 }
 
-void A1::draw_cube(){
-	GLfloat *new_triangle = new GLfloat[108]; 
-	for ( int idx=0; idx< 108; idx++){
-		new_triangle[idx] = g_vertex_buffer_data[idx];
+void A1::load_one_vertex_data( GLfloat * current_vertex, GLfloat * new_cube ){
+	for ( int i = 0; i < 3; i++ ){
+		new_cube[current_idx_of_cube] = current_vertex[i];
+		current_idx_of_cube++;
 	}
-	for (int idx=0; idx < 108; idx++ ){
-		new_triangle[idx] += 2.0f;
-	}	
+}
+
+void A1::push_vertex_to_buffer(GLint a, GLint b, GLint c, GLfloat * new_cube, GLfloat ** thisCellData ){
+	
+	load_one_vertex_data( thisCellData[a], new_cube );
+	load_one_vertex_data( thisCellData[b], new_cube );
+	load_one_vertex_data( thisCellData[c], new_cube );
+}
+
+void A1::push_data_to_buffer( GLfloat * data_set, int size, float * color ){
 	GLuint tmp_vao;
 	GLuint tmp_vbo;
 
@@ -199,18 +268,131 @@ void A1::draw_cube(){
 
 	glGenBuffers( 1, &tmp_vbo );
 	glBindBuffer( GL_ARRAY_BUFFER, tmp_vbo );
-	glBufferData( GL_ARRAY_BUFFER, 108*sizeof(float),
-		new_triangle, GL_STATIC_DRAW);
+	glBufferData( GL_ARRAY_BUFFER, 3*size*sizeof(float),
+		data_set, GL_STATIC_DRAW);
 
 	GLint posAttrib = m_shader.getAttribLocation( "position" );
 	glEnableVertexAttribArray( posAttrib );
 	glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
 
 	glBindVertexArray( tmp_vao );
-	glUniform3f( col_uni, 0, 0, 0 );
-	glDrawArrays( GL_TRIANGLES	, 0, 12*3 );
+	glUniform3f( col_uni, color[0], color[1], color[2] );
+	glDrawArrays( GL_TRIANGLES	, 0, size );
+}
+
+void A1::draw_cube(int x, int z){
+	GLfloat *new_cube = new GLfloat[108]; 
+
+	if ( allCellData[x][z]->get_current_height() ){
+		current_idx_of_cube = 0;
+		GLfloat ** thisCellData = allCellData[x][z]->get_vertex_data();
+
+		push_vertex_to_buffer(0, 1, 2, new_cube, thisCellData);
+		push_vertex_to_buffer(0, 2, 3, new_cube, thisCellData);	
+		push_vertex_to_buffer(0, 1, 5, new_cube, thisCellData);
+		push_vertex_to_buffer(0, 4, 5, new_cube, thisCellData);
+		push_vertex_to_buffer(0, 4, 7, new_cube, thisCellData);
+		push_vertex_to_buffer(0, 3, 7, new_cube, thisCellData);
+		push_vertex_to_buffer(1, 5, 6, new_cube, thisCellData);
+		push_vertex_to_buffer(1, 2, 6, new_cube, thisCellData);
+		push_vertex_to_buffer(2, 3, 6, new_cube, thisCellData);
+		push_vertex_to_buffer(3, 6, 7, new_cube, thisCellData);
+		push_vertex_to_buffer(4, 5, 6, new_cube, thisCellData);
+		push_vertex_to_buffer(4, 6, 7, new_cube, thisCellData);
+
+		GLint colorID = allCellData[x][z]->get_current_color();
+		
+		push_data_to_buffer( new_cube, 36, colour[colorID] );
+	}
+
+	delete [] new_cube;
+}
+
+void A1::draw_active_indicator(){
+	GLfloat * new_indicator = new GLfloat[72];
+	current_idx_of_cube = 0;
 	
-	delete [] new_triangle;
+	GLfloat ** v = new GLfloat*[6];
+	for ( int i = 0; i < 6; i++ ){
+		v[i] = new GLfloat[3];
+	}
+
+	float x = current_x_position ;
+	float z = current_z_position ;
+	int height = active_cell_data_ptr->get_current_height() + 3;
+
+	v[0][0] = x + 0.25; v[0][1] = height; v[0][2] = z + 0.25 ;
+	v[1][0] = x + 0.25; v[1][1] = height; v[1][2] = z + 0.75;
+	v[2][0] = x + 0.75; v[2][1] = height; v[2][2] = z + 0.75;
+	v[3][0] = x + 0.75; v[3][1] = height; v[3][2] = z + 0.25;
+	v[4][0] = x + 0.5; v[4][1] = height - 1; v[4][2] = z + 0.5;
+	v[5][0] = x + 0.5; v[5][1] = height + 1; v[5][2] = z + 0.5;
+
+	push_vertex_to_buffer(0, 1, 4, new_indicator, v );
+	push_vertex_to_buffer(1, 2, 4, new_indicator, v );
+	push_vertex_to_buffer(2, 3, 4, new_indicator, v );
+	push_vertex_to_buffer(0, 3, 4, new_indicator, v );
+	push_vertex_to_buffer(0, 1, 5, new_indicator, v );
+	push_vertex_to_buffer(0, 3, 5, new_indicator, v );
+	push_vertex_to_buffer(1, 2, 5, new_indicator, v );
+	push_vertex_to_buffer(2, 3, 5, new_indicator, v );
+
+	float indicator_color[3] = { 0, 0, 0 };
+	push_data_to_buffer( new_indicator, 24, indicator_color );
+
+	delete [] new_indicator;
+	for ( int i = 0; i < 6; i++){
+		delete [] v[i];
+	}
+	delete [] v;
+}
+
+void A1::draw_additional_indicator(){
+	GLfloat * new_buffer = new GLfloat[72];
+	current_idx_of_cube = 0;
+
+	GLfloat ** v = new GLfloat*[16];
+	for ( int i = 0; i < 16; i++ ){
+		v[i] = new GLfloat[3];
+	}
+
+	float x = current_x_position;
+	float z = current_z_position;
+
+	v[0][0] = -1; v[0][1] = 0; v[0][2] = z;
+	v[1][0] = -1; v[1][1] = 0; v[1][2] = z+1;
+	v[2][0] = 0; v[2][1] = 0; v[2][2] = z+1;
+	v[3][0] = 0; v[3][1] = 0; v[3][2] = z;
+	v[4][0] = x; v[4][1] = 0; v[4][2] = DIM;
+	v[5][0] = x; v[5][1] = 0; v[5][2] = DIM + 1;
+	v[6][0] = x+1; v[6][1] = 0; v[6][2] = DIM + 1;
+	v[7][0] = x+1; v[7][1] = 0; v[7][2] = DIM;
+	v[8][0] = DIM; v[8][1] = 0; v[8][2] = z;
+	v[9][0] = DIM; v[9][1] = 0; v[9][2] = z + 1;
+	v[10][0] = DIM + 1; v[10][1] = 0; v[10][2] = z + 1;
+	v[11][0] = DIM + 1; v[11][1] = 0; v[11][2] = z;
+	v[12][0] = x; v[12][1] = 0; v[12][2] = -1;	
+	v[13][0] = x; v[13][1] = 0; v[13][2] = 0;
+	v[14][0] = x + 1; v[14][1] = 0; v[14][2] = 0;
+	v[15][0] = x + 1; v[15][1] = 0; v[15][2] = -1;
+
+	push_vertex_to_buffer(0, 1, 2, new_buffer, v );
+	push_vertex_to_buffer(0, 2, 3, new_buffer, v );
+	push_vertex_to_buffer(4, 5, 6, new_buffer, v );
+	push_vertex_to_buffer(4, 6, 7, new_buffer, v );
+	push_vertex_to_buffer(8, 9, 10, new_buffer, v );
+	push_vertex_to_buffer(8, 10, 11, new_buffer, v );
+	push_vertex_to_buffer(12, 13, 14, new_buffer, v );
+	push_vertex_to_buffer(12, 14, 15, new_buffer, v );
+
+	float indicator_color[3] = { 1, 1, 1 };
+	push_data_to_buffer( new_buffer, 24, indicator_color );
+
+	delete [] new_buffer;
+	for ( int i = 0; i < 16; i++){
+		delete [] v[i];
+	}
+	delete [] v;
 }
 
 //----------------------------------------------------------------------------------------
@@ -246,15 +428,19 @@ void A1::guiLogic()
 		// Prefixing a widget name with "##" keeps it from being
 		// displayed.
 
-		ImGui::PushID( 0 );
-		ImGui::ColorEdit3( "##Colour", colour );
-		ImGui::SameLine();
-		if( ImGui::RadioButton( "##Col", &current_col, 0 ) ) {
-			// Select this colour.
+		for ( int i =0; i < 8; i++){
+			ImGui::PushID( i );
+			ImGui::ColorEdit3( "##Colour", colour[i] );
+			ImGui::SameLine();
+			if( ImGui::RadioButton( "##Col", &current_col, i ) ) {
+				// Select this colour.
+				active_cell_data_ptr->change_color(current_col);
+			}
 		}
-		ImGui::PopID();
 
-
+		for ( int i = 0; i < 8; i++){
+			ImGui::PopID();
+		}
 		// // For convenience, you can uncomment this to show ImGui's massive
 		// // demonstration window right in your application.  Very handy for
 		// // browsing around to get the widget you want.  Then look in 
@@ -262,7 +448,6 @@ void A1::guiLogic()
 		// if( ImGui::Button( "Test Window" ) ) {
 		// 	showTestWindow = !showTestWindow;
 		// }
-
 
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
@@ -295,13 +480,17 @@ void A1::draw()
 		glUniform3f( col_uni, 1, 1, 1 );
 		glDrawArrays( GL_LINES, 0, (3+DIM)*4 );
 
-		// Draw the cubes
-		// Highlight the active square.
-		glBindVertexArray( m_bar_vao );
-		glUniform3f( col_uni, 1, 1, 1 );
-		glDrawArrays( GL_TRIANGLES	, 0, 12*3 );
+		// Draw each cell in the grid
+		for ( int i = 0; i < DIM; i++){
+			for ( int j = 0; j < DIM; j++ ){
+				draw_cube( i , j );
+			}
+		}
 
-		draw_cube();
+		draw_additional_indicator();
+		glDisable( GL_DEPTH_TEST );
+		draw_active_indicator();
+
 	m_shader.disable();
 
 	// Restore defaults
@@ -316,6 +505,32 @@ void A1::draw()
  */
 void A1::resetGrid(){
 
+	for ( int i = 0; i < 8; i++){
+		for ( int j = 0; j < 3; j++){
+			colour[i][j] = 0.0f;
+		}
+	}
+	for ( int i=0; i < DIM; i++){
+		for ( int j=0; j< DIM; j++){
+			allCellData[i][j]->resetData();
+		}
+	}
+	current_x_position = 0;
+	current_z_position = 0;
+	active_cell_data_ptr = allCellData[current_x_position][current_z_position];
+
+	current_idx_of_cube = 0;
+
+	current_col = 0;
+	leftShiftPressed = 0;
+	rightShiftPressed = 0;
+	quadrant = 1;
+	camera_xPos = 0.0f;
+
+	view = glm::lookAt( 
+		glm::vec3( 0.0f, float(DIM)*2.0*M_SQRT1_2, float(DIM)*2.0*M_SQRT1_2 ),
+		glm::vec3( 0.0f, 0.0f, 0.0f ),
+		glm::vec3( 0.0f, 1.0f, 0.0f ) );
 }
 
 //----------------------------------------------------------------------------------------
@@ -323,7 +538,16 @@ void A1::resetGrid(){
  * Called once, after program is signaled to terminate.
  */
 void A1::cleanup()
-{}
+{
+	for ( int i = 0; i < DIM; i++){
+		for ( int j = 0; j < DIM; j++){
+			delete allCellData[i][j];
+		}
+	}
+	for ( int i = 0; i < 8; i++){
+		delete [] colour[i];
+	}
+}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -354,10 +578,38 @@ bool A1::mouseMoveEvent(double xPos, double yPos)
 		// rotation amount, and maybe the previous X position (so 
 		// that you can rotate relative to the *change* in X.
 		if ( mouseClicking ){
-
-
-			eventHandled = true;
+			float scaling = 0.06f;
+			float x = xPos - previous_xPos;
+			if ( quadrant ){
+				camera_xPos += scaling * x;
+				if ( camera_xPos > MAXDISTANCE ){
+					camera_xPos = MAXDISTANCE - (camera_xPos - MAXDISTANCE);
+					quadrant = 0;
+				}
+				if ( camera_xPos < -MAXDISTANCE ){
+					camera_xPos = -MAXDISTANCE - ( camera_xPos + MAXDISTANCE);
+					quadrant = 0;
+				}
+			}else {
+				camera_xPos -= scaling * x;
+				if ( camera_xPos > MAXDISTANCE ){
+					camera_xPos = MAXDISTANCE - (camera_xPos - MAXDISTANCE);
+					quadrant = 1;
+				}
+				if ( camera_xPos < -MAXDISTANCE ){
+					camera_xPos = -MAXDISTANCE - ( camera_xPos + MAXDISTANCE);
+					quadrant = 1;
+				}
+			}
+			float z = sqrt( DIM*DIM*2 - camera_xPos * camera_xPos );
+			z = quadrant ? z : -z;
+			view = glm::lookAt( 
+				glm::vec3( camera_xPos, float(DIM)*2.0*M_SQRT1_2, z ),
+				glm::vec3( 0.0f, 0.0f, 0.0f ),
+				glm::vec3( 0.0f, 1.0f, 0.0f ) );
 		}
+		previous_xPos = xPos;
+		eventHandled = true;
 	}
 
 	return eventHandled;
@@ -422,72 +674,91 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 		// Respond to some key events.
 		eventHandled = true;
 		int shiftPressed = leftShiftPressed || rightShiftPressed;	//indicate that if shift keys are holded
+		int updated_position = 0;
+		int copy_data_from_old = 0;
 		switch ( key ){
 			case GLFW_KEY_Q:
 				//quit the application
 				glfwSetWindowShouldClose(m_window, GL_TRUE);
-				cout << "Quit the application" << endl;
 				break;
 			case GLFW_KEY_R:
 				//reset the grid
 				resetGrid();
-				cout << "Reset the grid" << endl;
 				break;
 			case GLFW_KEY_SPACE:
 				//This event will grow the bar in the active cell
-				cout << "Grow an cell" << endl;
-				
-				//things to be done...
+				if ( !active_cell_data_ptr->get_current_height() ){
+					active_cell_data_ptr->change_color(current_col);
+				}
+				active_cell_data_ptr->change_height( 1 );
 				break;
 			case GLFW_KEY_BACKSPACE:
 				//shrink the bar by one unit
-				cout << "Shrink an cell" << endl;
-				//things to be done...
+				active_cell_data_ptr->change_height( -1 );
 				break;
 			case GLFW_KEY_LEFT:
 				//move the active cell left
-				cout << "> left" << endl;
-				if (shiftPressed){
-					cout << "Shift left" << endl;
+				current_x_position--;
+				if ( current_x_position < 0 ){
+					current_x_position = DIM - 1 ;
 				}
-				//things to be done...
+				if (shiftPressed){
+					copy_data_from_old = 1;
+				}
+				updated_position = 1;
 				break;
 			case GLFW_KEY_RIGHT:
 				//move the active cell right
-				cout << "> right" << endl;
-				if (shiftPressed){
-					cout << "Shift right" << endl;
+				current_x_position++;
+				if ( current_x_position >= DIM ){
+					current_x_position = 0;
 				}
-				//things to be done...
+				if (shiftPressed){
+					copy_data_from_old = 1;
+				}
+				updated_position = 1;
 				break;
 			case GLFW_KEY_UP:
 				//move the active cell up
-				cout << "> up" << endl;
-				if (shiftPressed){
-					cout << "Shift up" << endl;
+				current_z_position--;
+				if ( current_z_position <= 0 ){
+					current_z_position = DIM - 1;
 				}
-				//things to be done...
+				if (shiftPressed){
+					copy_data_from_old = 1;
+				}
+				updated_position = 1;
 				break;
 			case GLFW_KEY_DOWN:
 				//move the active cell down
-				cout << "> down" << endl;
-				if (shiftPressed){
-					cout << "Shift down" << endl;
+				current_z_position++;
+				if ( current_z_position >= DIM ){
+					current_z_position = 0;
 				}
-				//things to be done...
+				if (shiftPressed){
+					copy_data_from_old = 1;
+				}
+				updated_position = 1;
 				break;
 			case GLFW_KEY_LEFT_SHIFT:
-				cout << "Shift Pressed" << endl;
 				leftShiftPressed = 1;
 				break;
 			case GLFW_KEY_RIGHT_SHIFT:
-				cout << "Shift Pressed" << endl;
 				rightShiftPressed = 1;
 				break;
 			default:
 				eventHandled = false;
 				break;
+		}//switch over
+
+		if ( updated_position ){
+			oneCellData * old_cell_data = active_cell_data_ptr;
+			active_cell_data_ptr = allCellData[current_x_position][current_z_position];
+			if ( copy_data_from_old ){
+				allCellData[current_x_position][current_z_position]->copy_old_data( old_cell_data );
+			}
 		}
+
 	}
 	if ( action == GLFW_RELEASE ){
 		//Response to the shift key release event

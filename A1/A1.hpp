@@ -8,6 +8,28 @@
 
 #include "grid.hpp"
 
+class oneCellData{
+	GLfloat **vertex_data_buffer;
+
+	GLint x;
+	GLint z;
+
+	GLint height;
+	GLint colorID;
+public:
+	oneCellData(int x, int z);
+	~oneCellData();
+	GLfloat** get_vertex_data();
+	void change_height( int n );
+	void change_color( int newColorID);
+	void change_vertex_height_data();
+	GLint get_current_color();
+	GLint get_current_height();
+	void copy_old_data( oneCellData * old );
+	void resetData();
+};
+
+
 class A1 : public CS488Window {
 public:
 	A1();
@@ -31,7 +53,13 @@ private:
 	void initGrid();
 
 	void resetGrid();
-	void draw_cube();
+	void draw_cube( int x, int z );
+	void draw_active_indicator();
+	void draw_additional_indicator();
+
+	void load_one_vertex_data( GLfloat * current_vertex, GLfloat* new_cube );
+	void push_vertex_to_buffer(int a, int b, int c, GLfloat* new_cube, GLfloat ** thisCellData);
+	void push_data_to_buffer( GLfloat * data_set, int size, float * color );
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
@@ -44,17 +72,23 @@ private:
 	GLuint m_grid_vao; // Vertex Array Object
 	GLuint m_grid_vbo; // Vertex Buffer Object
 
-	GLuint m_bar_vao;	//bar array object
-	GLuint m_bar_vbo;	//bar buffer object
-
 	// Matrices controlling the camera and projection.
 	glm::mat4 proj;
 	glm::mat4 view;
 
-	float currentXpos;
+	GLint current_x_position;
+	GLint current_z_position;
 
-	float colour[3];
+	oneCellData * active_cell_data_ptr;
+
+	float camera_xPos;
+	double previous_xPos;
+	float ** colour;
 	int current_col;
+	int current_idx_of_cube;
+	int quadrant;
+
+	oneCellData * allCellData[16][16];
 
 	volatile int mouseClicking;
 	volatile int leftShiftPressed;	//flag variable of leftShift
